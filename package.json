@@ -1,0 +1,10 @@
+{
+  "name": "claude360",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Claude 360 — 中转站演示（前端 + 后台 + 模拟 API）",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

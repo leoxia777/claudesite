@@ -1,0 +1,51 @@
+{
+  "site": {
+    "name": "Claude 直充站",
+    "domain": "claude360.pro",
+    "locale": "zh-CN",
+    "description": "2026 Claude Pro / Max / Ultra 国内充值与订阅协助：用 Claude Opus / Claude Sonnet 推进复杂代码、梳理长资料、打磨报告与方案。Max 原名 Max 5x，Ultra 原名 Max 20x；按工作强度选择，无需海外信用卡，支持人民币下单，实时价格、交付与售后规则可查。引路鲸为独立第三方服务。",
+    "parent": { "name": "引路鲸", "url": "https://yinlujing.com" },
+    "contact": {
+      "type": "customer support",
+      "language": "zh-CN",
+      "hours": "Mo-Su 9:00-24:00",
+      "telegram": "https://t.me/yinlujing_official",
+      "email": "support@yinlujing.com"
+    }
+  },
+  "nav": [
+    { "label": "首页", "href": "/" },
+    { "label": "商品", "href": "/products" },
+    { "label": "代下单", "href": "/checkout" },
+    { "label": "兑换卡密", "href": "/redeem" },
+    { "label": "订单查询", "href": "/order" },
+    { "label": "合作", "href": "/partner" },
+    { "label": "指南", "href": "/guide" },
+    { "label": "FAQ", "href": "/faq" }
+  ],
+  "footer": {
+    "notice": "本站为独立第三方服务，与 Anthropic 无隶属关系。Claude 为 Anthropic 商标。所有交付与售后以页面实时状态为准。",
+    "links": [
+      { "label": "隐私政策", "href": "/privacy" },
+      { "label": "公告", "href": "/announcement" }
+    ]
+  },
+  "home": {
+    "hero": {
+      "title": "2026 Claude Pro / Max / Ultra 国内直充",
+      "subtitle": "无需海外信用卡，支持人民币下单。用 Claude Opus / Sonnet 推进复杂代码、梳理长资料、打磨报告与方案。",
+      "points": ["实时价格与交付状态", "代充 / 成品号两种交付", "售后质保可选", "客服 9:00-24:00"]
+    },
+    "plans": [
+      { "family": "claude-pro", "name": "Claude Pro", "note": "原名 Pro", "salePrice": 349, "fromPrice": 334, "fromNote": "优惠后低至 ¥334 · 满足优惠条件后可享", "cta": "查看 Pro 方案" },
+      { "family": "claude-max", "name": "Claude Max", "note": "原名 Max 5x", "salePrice": 1799, "fromPrice": 1784, "fromNote": "优惠后低至 ¥1784", "cta": "查看 Max 方案" },
+      { "family": "claude-ultra", "name": "Claude Ultra", "note": "原名 Max 20x", "salePrice": 2989, "fromPrice": 2974, "fromNote": "优惠后低至 ¥2974", "cta": "查看 Ultra 方案" }
+    ],
+    "steps": [
+      { "t": "选择服务", "d": "Pro / Max / Ultra，代充或成品号" },
+      { "t": "填写联系邮箱", "d": "用于接收订单与交付信息" },
+      { "t": "扫码支付", "d": "人民币结算，无需外币卡" },
+      { "t": "跟踪交付", "d": "订单页实时查看状态" }
+    ]
+  }
+}

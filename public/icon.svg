@@ -1,0 +1,12 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+<!-- 引路鲸 favicon 极简版（对齐总站定稿）：鲸廓+星，深海蓝底，去掉小尺寸看不清的喷水/航线/水线 -->
+<rect width="64" height="64" rx="14" fill="#0E385F"/>
+<g transform="translate(32 34) scale(0.238) translate(-163.5 -112)">
+  <path d="M68 180C72 140 111 116 164 117C195 118 217 138 238 129C250 124 258 110 264 93C270 113 267 132 252 146C260 154 266 165 268 180H68Z" fill="#F1F7FF"/>
+  <circle cx="111" cy="148" r="8" fill="#0C365E"/>
+  <g transform="translate(80 62) scale(0.8)">
+    <path d="M0 -28 L8 -8 L28 0 L8 8 L0 28 L-8 8 L-28 0 L-8 -8 Z" fill="#FFD166"/>
+    <circle cx="0" cy="0" r="5" fill="#FFE6A3"/>
+  </g>
+</g>
+</svg>
