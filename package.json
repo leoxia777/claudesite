@@ -1,8 +1,8 @@
 {
-  "name": "claude360",
+  "name": "sdg",
   "version": "1.0.0",
   "private": true,
-  "description": "Claude 360 — 中转站演示（前端 + 后台 + 模拟 API）",
+  "description": "SDG — 账号订阅站（前端 + 后台 + 模拟 API）",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

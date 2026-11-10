@@ -1,5 +1,5 @@
 /**
- * claude360.pro 本地仿站 — 零依赖 node:http
+ * sdg.pro 本地仿站 — 零依赖 node:http
  * 前端契约严格对齐线上 chunk 逻辑:
  *  - 信封: {success:true,data} / {success:false,error:{code,message}}
  *  - data 形状 (chunk 4309 解包层): POST /api/orders -> {order};
@@ -32,7 +32,7 @@ const products = catalog.map((x) => ({
   subtitle: String(x.subtitle || ''),
   price: strPrice(x.extra.fromPrice) || strPrice(x.value),
   category: x.category || 'other',
-  delivery: x.extra.delivery || 'recharge',
+  delivery: x.extra.delivery || 'account',
   warranty: x.extra.warranty === 'true',
   soldOut: x.extra.soldOut === 'true',
   orderable: x.extra.orderable === 'true',
@@ -45,16 +45,14 @@ const categories = [...new Set(catalog.map((x) => x.category || 'other'))].map((
 
 /* ---------------- 状态 (内存 + 落盘 data/db.json) ---------------- */
 const DB_FILE = path.join(__dirname, 'data', 'db.json');
-const db = Object.assign({ orders: {}, redeemCodes: {}, inviteCodes: {} },
+const db = Object.assign({ orders: {}, inviteCodes: {} },
   fs.existsSync(DB_FILE) ? JSON.parse(fs.readFileSync(DB_FILE, 'utf8')) : {});
 function persist() {
   try { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2)); } catch {}
 }
 function seed() {
-  if (!db.redeemCodes['C360-DEMO-0001']) db.redeemCodes['C360-DEMO-0001'] =
-    { code: 'C360-DEMO-0001', amount: 100, listingId: null, usedAt: null };
-  if (!db.redeemCodes['C360-DEMO-0002']) db.redeemCodes['C360-DEMO-0002'] =
-    { code: 'C360-DEMO-0002', amount: 349, listingId: 'LIST-000074', usedAt: null };
+
+
   if (!db.inviteCodes['INV-DEMO001']) db.inviteCodes['INV-DEMO001'] =
     { code: 'INV-DEMO001', usedAt: null };
   persist();
@@ -127,19 +125,22 @@ function qrDataUri(seed) {
 
 /* ---------------- 交付内容 ---------------- */
 function buildDelivery(order) {
-  const product = products.find((p) => p.listingId === order.listingId) || {};
-  if (product.delivery === 'account') {
-    let h = 0; for (const ch of order.orderNo) h = (Math.imul(h, 31) + ch.charCodeAt(0)) >>> 0;
-    const n = h % 900000 + 100000;
+  if (order.delivery === 'account') {
+    const tail = order.orderNo.replace(/[^A-Z0-9]/g, '').slice(-6).toLowerCase();
     return {
       type: 'account',
-      account: { email: `c360_${n}@demo-mail.local`, password: `C360-${(h % 9000 + 1000)}${n % 10}` },
-      plan: product.name,
-      note: '演示交付凭据：账号 24h 内登录完成绑定，异常走售后质保。'
+      account: {
+        email: 'sdg' + tail + '@sdg.pro',
+        password: 'SDG-' + crypto.randomBytes(6).toString('hex').toUpperCase()
+      },
+      guide: '使用交付邮箱登录，勿修改绑定邮箱，账号归属以交付信息为准。',
+      warranty: order.warranty ? '30天订阅质保：异常补发或退款' : '本规格无质保，交付以页面说明为准'
     };
   }
-  return { type: 'upgrade', instruction: `请在 ${new Date().toISOString().slice(0, 10)} 前联系客服 (t.me/yinlujing_official) 提供账号登录态，代充完成后 2h 内生效。` };
+  return { type: order.delivery || 'account', account: null, guide: '', warranty: '' };
 }
+
+
 
 /* ---------------- 下单校验 (对齐 chunk 5619 字段规则) ---------------- */
 function validateOrderPayload(b) {
@@ -218,7 +219,8 @@ async function api(req, res, pathname, url) {
       categories,
       faq: [
         { q: '支持哪些支付方式？', a: '仅支持人民币 (CNY)，扫码支付，无需海外信用卡。' },
-        { q: '代充和成品号有什么区别？', a: '代充绑定你已有的 Claude 账号升级订阅；成品号交付独立账号，开箱即用。' },
+        
+        { q: 'Claude Team 席位和个人成品号有什么区别？', a: '个人成品号直接交付独立账号，开箱即用；Team 席位按席位购买，可加入共享 Team 工作区。' },
         { q: '有质保吗？', a: '标注“有质保”的规格提供售后质保，异常补发或退款；无质保规格以页面说明为准。' },
         { q: '客服时间？', a: site.site.contact.hours + '，Telegram: ' + site.site.contact.telegram }
       ],
@@ -232,9 +234,12 @@ async function api(req, res, pathname, url) {
   // content 其余端点
   if (pathname === '/api/content/pay-qr') return ok(res, { image: qrDataUri('pay-qr'), channel: 'qr' });
 
-  // 其余端点先校验 assertion
-  const assertErr = checkAssertion(req);
-  if (assertErr) return err(res, 412, assertErr.code, assertErr.message);
+  // 其余端点先校验 assertion（admin 路由免 assertion，仅凭 X-Admin-Token）
+  const isAdminRoute = pathname.startsWith('/api/admin/') || pathname === '/api/invite-codes/issue' || pathname === '/api/invite-codes/list';
+  if (!isAdminRoute) {
+    const assertErr = checkAssertion(req);
+    if (assertErr) return err(res, 412, assertErr.code, assertErr.message);
+  }
 
   if (pathname === '/api/products/listed') return ok(res, { products });
   if (pathname === '/api/products/categories') return ok(res, { categories });
@@ -251,7 +256,7 @@ async function api(req, res, pathname, url) {
   }
 
   if (pathname === '/api/orders/query') {
-    const o = db.orders[String(b.orderNo || '')];
+    const o = db.orders[String(b.orderNo || url.searchParams.get('orderNo') || '')];
     if (!o) return err(res, 404, 'ORDER_NOT_FOUND', '未找到订单，请核对订单号');
     return ok(res, { order: o });
   }
@@ -285,12 +290,7 @@ async function api(req, res, pathname, url) {
     return ok(res, { order: o });
   }
 
-  if (pathname === '/api/prepaid/batches') {
-    let codes = Object.values(db.redeemCodes);
-    const listingId = String(url.searchParams.get('listingId') || '');
-    if (listingId) codes = codes.filter((c) => c.listingId === listingId);
-    return ok(res, { batches: codes.map((c) => ({ code: c.code, amount: c.amount, listingId: c.listingId, used: !!c.usedAt })) });
-  }
+
 
   if (pathname === '/api/invite-codes/verify') {
     const c = db.inviteCodes[String(b.code || '').trim().toUpperCase()];
@@ -298,63 +298,15 @@ async function api(req, res, pathname, url) {
     return ok(res, { valid: true, code: c.code });
   }
 
-  if (pathname === '/api/redeem/verify') {
-    const c = db.redeemCodes[String(b.code || '').trim().toUpperCase()];
-    if (!c) return err(res, 404, 'REDEEM_CODE_NOT_FOUND', '卡密不存在或已失效');
-    if (c.usedAt) return err(res, 409, 'PREPAID_PAYMENT_REFERENCE_USED', '该卡密已被使用');
-    const p = products.find((x) => x.listingId === c.listingId);
-    return ok(res, { valid: true, code: c.code, amount: c.amount, currency: 'CNY', productName: p ? p.name : null });
-  }
 
-  if (pathname === '/api/redeem/submit') {
-    const code = String(b.code || '').trim().toUpperCase();
-    const c = db.redeemCodes[code];
-    if (!c) return err(res, 404, 'REDEEM_CODE_NOT_FOUND', '卡密不存在或已失效');
-    if (c.usedAt) return err(res, 409, 'PREPAID_PAYMENT_REFERENCE_USED', '该卡密已被使用');
-    const contactEmail = typeof b.contactEmail === 'string' ? b.contactEmail : (typeof b.token === 'string' ? b.token : '');
-    if (!contactEmail || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contactEmail))
-      return err(res, 400, 'VALIDATION_ERROR', '请填写有效的联系邮箱');
-    const idem = typeof b.idempotencyKey === 'string' ? b.idempotencyKey : '';
-    const product = products.find((x) => x.listingId === c.listingId);
-    const orderNo = 'REX-' + Date.now().toString(36).toUpperCase() + '-' + (idem ? idem.slice(0, 8).toUpperCase() : crypto.randomBytes(2).toString('hex').toUpperCase());
-    const order = {
-      orderNo, listingId: product ? product.listingId : null, stableSku: product ? product.stableSku : null,
-      familySlug: product ? product.familySlug : null, name: product ? product.name : '预付卡密',
-      price: c.amount, quantity: 1, total: c.amount, currency: 'CNY',
-      contactEmail, deviceCategory: 'pc', status: 'delivered', canCreateNewOrder: true,
-      paymentProvider: 'prepaid', paymentChannel: 'redeem', personal_code: 'PC-' + code.slice(-4).toUpperCase(),
-      paymentGuarantee: product ? (product.warranty ? '官方交付质保：异常补发或退款' : '本规格无质保') : '预付余额',
-      paymentOptions: [], paymentCodeImage: null,
-      createdAt: new Date().toISOString(), paidAt: new Date().toISOString(), deliveredAt: new Date().toISOString(),
-    };
-    order.deliveryPayload = product ? buildDelivery(order) : { type: 'balance', amount: c.amount, note: '预付余额已到账，可用于后续下单抵扣。' };
-    c.usedAt = new Date().toISOString(); c.usedBy = orderNo;
-    db.orders[orderNo] = order;
-    persist();
-    return ok(res, { redemption: { code, amount: c.amount, currency: 'CNY', redeemedAt: order.redeemedAt = order.paidAt, orderNo, contactEmail, targetEmail: b.targetEmail || null, productName: product ? product.name : null } });
-  }
+
+
 
   /* ---------------- 后台 (X-Admin-Token) ---------------- */
   const token = req.headers['x-admin-token'];
-  if (token && ['c360-admin-dev', 'xmodel-admin'].includes(token)) {
-    if (pathname === '/api/site-redemption/issue') {
-      const count = Math.min(Number(b.count) || 0, 50);
-      if (count <= 0) return err(res, 400, 'INVALID_INPUT', '签发数量须为 1-50');
-      const amount = Number(b.amount);
-      if (!Number.isFinite(amount) || amount <= 0) return err(res, 400, 'INVALID_INPUT', '面额须为正数');
-      const listingId = String(b.listingId || '');
-      if (listingId && !products.find((p) => p.listingId === listingId)) return err(res, 400, 'INVALID_INPUT', '指定规格不存在');
-      const codes = [];
-      for (let i = 0; i < count; i++) {
-        const code = 'C360-' + crypto.randomBytes(4).toString('hex').toUpperCase().replace(/(.{4})/g, '$1-').replace(/-$/, '');
-        db.redeemCodes[code] = { code, amount, listingId: listingId || null, usedAt: null };
-        codes.push(code);
-      }
-      persist();
-      return ok(res, { codes, count });
-    }
-    if (pathname === '/api/site-redemption/list')
-      return ok(res, { codes: Object.values(db.redeemCodes).sort((a, b2) => (a.code < b2.code ? -1 : 1)) });
+  if (token && ['sdg-admin-dev', 'xmodel-admin'].includes(token)) {
+
+
     if (pathname === '/api/invite-codes/issue') {
       const count = Math.min(Number(b.count) || 0, 50);
       if (count <= 0) return err(res, 400, 'INVALID_INPUT', '签发数量须为 1-50');
@@ -376,8 +328,6 @@ async function api(req, res, pathname, url) {
       return ok(res, {
         orders: orders.length,
         revenue: orders.filter((o) => o.status === 'paid' || o.status === 'delivered').reduce((s, o) => s + o.total, 0),
-        redeemTotal: Object.keys(db.redeemCodes).length,
-        redeemUsed: Object.values(db.redeemCodes).filter((c) => c.usedAt).length,
         inviteTotal: Object.keys(db.inviteCodes).length
       });
     }
@@ -428,4 +378,4 @@ http.createServer(async (req, res) => {
   } catch (e) {
     err(res, 500, 'INTERNAL_ERROR', '服务内部错误');
   }
-}).listen(PORT, () => console.log(`claude360 clone listening on http://localhost:${PORT}`));
+}).listen(PORT, () => console.log(`sdg site listening on http://localhost:${PORT}`));
