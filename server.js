@@ -234,11 +234,38 @@ async function api(req, res, pathname, url) {
   // content 其余端点
   if (pathname === '/api/content/pay-qr') return ok(res, { image: qrDataUri('pay-qr'), channel: 'qr' });
 
+  // 客服二维码 (img 直链, 返回原始 SVG 字节; 不带 Site-Assertion 头, 须在 assertion 校验前拦截)
+  const csqr = pathname.match(/^\/api\/content\/cs-qr\/(\d+)$/);
+  if (csqr && req.method === 'GET') {
+    const brand = url.searchParams.get('brand') || '';
+    const b64 = qrDataUri('cs-qr-' + csqr[1] + '-' + brand).split(',').pop();
+    res.writeHead(200, { 'Content-Type': 'image/svg+xml' });
+    return res.end(Buffer.from(b64, 'base64'));
+  }
+
+  // 运行时错误上报 (chunk 5619 fetch 不带任何 Site-* 头, 免 assertion)
+  if (pathname === '/api/runtime-errors' && req.method === 'POST') return ok(res, {});
+
   // 其余端点先校验 assertion（admin 路由免 assertion，仅凭 X-Admin-Token）
   const isAdminRoute = pathname.startsWith('/api/admin/') || pathname === '/api/invite-codes/issue' || pathname === '/api/invite-codes/list';
   if (!isAdminRoute) {
     const assertErr = checkAssertion(req);
     if (assertErr) return err(res, 412, assertErr.code, assertErr.message);
+  }
+
+  // 预付费批次列表 (chunk 8893 s.cx GET, 带 assertion; en locale 过滤中文, 字段须为 ASCII)
+  if (pathname === '/api/prepaid/batches' && req.method === 'GET') {
+    const listingId = url.searchParams.get('listingId') || '';
+    const p = products.find((x) => x.listingId === listingId);
+    const batches = p && p.orderable && !p.soldOut ? [{
+      id: 'BATCH-' + p.listingId,
+      productName: (p.name || '').replace(/[^ -~]/g, '').trim() || 'Claude Access',
+      terms: 'Instant delivery via order page.',
+      period: '1 month',
+      validityDays: 30,
+      availableCount: 5
+    }] : [];
+    return ok(res, { listingId, batches });
   }
 
   if (pathname === '/api/products/listed') return ok(res, { products });

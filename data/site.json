@@ -3,7 +3,7 @@
     "name": "SDG 账号订阅站",
     "domain": "sdg.pro",
     "locale": "zh-CN",
-    "description": "2026 Claude / ChatGPT 成品账号与团队席位订阅：独立成品号交付，无需海外信用卡，支持人民币下单。Claude Pro / Max / Ultra 个人账号、Claude Team 团队席位、ChatGPT Plus / Pro 账号，实时价格、交付与售后规则可查。SDG 为独立第三方服务。",
+    "description": "2026 Claude / ChatGPT 账号与团队席位订阅：独立账号交付，无需海外信用卡，支持人民币下单。Claude Pro / Max / Ultra 个人账号、Claude Team 团队席位、ChatGPT Plus / Pro 账号，实时价格、交付与售后规则可查。SDG 为独立第三方服务。",
     "parent": { "name": "SDG", "url": "https://sdg.com" },
     "contact": {
       "type": "customer support",
@@ -30,17 +30,17 @@
   },
   "home": {
     "hero": {
-      "title": "SDG 账号订阅 — Claude / ChatGPT 成品号与团队席位",
-      "subtitle": "独立成品账号交付，无需海外信用卡，支持人民币下单。用 Claude Opus / Sonnet、GPT 系列推进复杂代码、梳理长资料、打磨报告与方案。",
-      "points": ["实时价格与交付状态", "成品号 / 团队席位交付", "售后质保可选", "客服 9:00-24:00"]
+      "title": "SDG 账号订阅 — Claude / ChatGPT 账号与团队席位",
+      "subtitle": "独立账号交付，无需海外信用卡，支持人民币下单。用 Claude Opus / Sonnet、GPT 系列推进复杂代码、梳理长资料、打磨报告与方案。",
+      "points": ["实时价格与交付状态", "客服 9:00-24:00"]
     },
     "plans": [
-      { "family": "claude-pro", "name": "Claude Pro", "note": "成品号·月付", "salePrice": 349, "fromPrice": 334, "fromNote": "优惠后低至 ¥334 · 满足优惠条件后可享", "cta": "查看 Pro 成品号" },
-      { "family": "claude-max", "name": "Claude Max", "note": "原 Max 5x·成品号", "salePrice": 1799, "fromPrice": 1784, "fromNote": "优惠后低至 ¥1784", "cta": "查看 Max 成品号" },
-      { "family": "claude-ultra", "name": "Claude Ultra", "note": "原 Max 20x·成品号", "salePrice": 2989, "fromPrice": 2974, "fromNote": "优惠后低至 ¥2974", "cta": "查看 Ultra 成品号" }
+      { "family": "claude-pro", "name": "Claude Pro", "note": "月付", "salePrice": 349, "fromPrice": 334, "fromNote": "优惠后低至 ¥334 · 满足优惠条件后可享", "cta": "查看 Pro" },
+      { "family": "claude-max", "name": "Claude Max", "note": "原 Max 5x", "salePrice": 1799, "fromPrice": 1784, "fromNote": "优惠后低至 ¥1784", "cta": "查看 Max" },
+      { "family": "claude-ultra", "name": "Claude Ultra", "note": "原 Max 20x", "salePrice": 2989, "fromPrice": 2974, "fromNote": "优惠后低至 ¥2974", "cta": "查看 Ultra" }
     ],
     "steps": [
-      { "t": "选择服务", "d": "Pro / Max / Ultra 成品号，或 Team 席位 / ChatGPT 账号" },
+      { "t": "选择服务", "d": "Pro / Max / Ultra 账号，或 Team 席位 / ChatGPT 账号" },
       { "t": "填写联系邮箱", "d": "用于接收订单与交付信息" },
       { "t": "扫码支付", "d": "人民币结算，无需外币卡" },
       { "t": "跟踪交付", "d": "订单页实时查看状态" }
